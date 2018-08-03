@@ -10,7 +10,6 @@
     "-opassword_stdout",                \
     "-orellinks",                       \
     "-ofstypename=SSHFS",               \
-    "-oUserKnownHostsFile=/dev/null",   \
     "-oStrictHostKeyChecking=no"
 
 #if 0
@@ -45,7 +44,7 @@ int main(int argc, char *argv[])
     static const char *sshfs = "/bin/sshfs.exe";
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
-    char idmap[64], volpfx[256], portopt[256], remote[256];
+    char idmap[64], volpfx[256], volname[256], portopt[256], remote[256];
     char *locuser, *remuser, *locuser_dom, *host, *port, *path, *drive, *p, *envuser;
 
     if (3 > argc || argc > 4)
@@ -139,6 +138,7 @@ int main(int argc, char *argv[])
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
     snprintf(remote, sizeof remote, "%s@%s:%s", remuser, host, path);
     snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/sshfs/%s@%s/%s", remuser, host, path);
+    snprintf(volname, sizeof volname, "-ovolname=/sshfs/%s@%s/%s", remuser, host, path);
     snprintf(idmap, sizeof idmap, "-ouid=-1,gid=-1");
 
     // I don't know the reason for getting the local uid/gid
@@ -155,10 +155,10 @@ int main(int argc, char *argv[])
     // }
 
     
-    write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s", 
-        sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, drive, (void *)0, environ);
+    write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s ", 
+        sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, remote, drive, (void *)0, environ);
 
-    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, drive, (void *)0, environ);
+    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, remote, drive, (void *)0, environ);
 
     return 1;
 }
