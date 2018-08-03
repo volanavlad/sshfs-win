@@ -1,7 +1,8 @@
 #include <stdarg.h>
 #include <stdio.h>
-#include <pwd.h>
+//#include <pwd.h>
 #include <unistd.h>
+#include <stdlib.h>
 
 #define SSHFS_ARGS                      \
     "-f",                               \
@@ -27,19 +28,37 @@ static void pr_execl(const char *path, ...)
 }
 #endif
 
+void write_log(const char *fmt, ...) {
+    char message[1000];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(message, fmt, args);
+    va_end(args);
+    FILE *f = fopen("c:\\temp\\sshfs.log", "a");
+    if (f != NULL)
+        fprintf(f, "sshfs-win: debug: %s\n", message);
+    fclose(f);
+}
+
 int main(int argc, char *argv[])
 {
     static const char *sshfs = "/bin/sshfs.exe";
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], portopt[256], remote[256];
-    char *locuser, *locuser_nodom, *userhost, *port, *path, *p;
+    char *locuser, *remuser, *locuser_dom, *host, *port, *path, *drive, *p, *envuser;
 
     if (3 > argc || argc > 4)
         return 2;
 
-    snprintf(volpfx, sizeof volpfx, "--VolumePrefix=%s", argv[1]);
+    envuser = getenv("USERNAME");
+    write_log("USERNAME: %s", envuser);
+    if (argc < 4)
+        write_log("Starting %s %s %s", argv[0], argv[1], argv[2]);
+    else
+        write_log("Starting %s %s %s %s", argv[0], argv[1], argv[2], argv[3]);
 
+    /* parse argv[1] */
     /* translate backslash to forward slash */
     for (p = argv[1]; *p; p++)
         if ('\\' == *p)
@@ -54,17 +73,23 @@ int main(int argc, char *argv[])
     while ('/' == *p)
         p++;
 
-    /* parse instance name (syntax: [locuser=]user@host!port) */
-    locuser = locuser_nodom = 0;
-    userhost = p;
+    /* parse instance name (syntax: [locuser=]remuser@host!port/path) */
+    locuser = remuser = locuser_dom = 0;
+    host = p;
     port = "22";
     while (*p && '/' != *p)
     {
         if ('=' == *p)
         {
             *p = '\0';
-            locuser = userhost;
-            userhost = p + 1;
+            locuser = host;
+            host = p + 1;
+        }
+        else if ('@' == *p)
+        {
+            *p = '\0';
+            remuser = host;
+            host = p + 1;
         }
         else if ('!' == *p)
         {
@@ -77,48 +102,63 @@ int main(int argc, char *argv[])
         *p++ = '\0';
     path = p;
 
-    snprintf(portopt, sizeof portopt, "-oPort=%s", port);
-    snprintf(remote, sizeof remote, "%s:%s", userhost, path);
 
     /* get local user name */
     if (0 == locuser)
     {
-        if (3 >= argc)
+        if (3 == argc)
         {
-            p = userhost;
-            while (*p && '@' != *p)
-                p++;
-            if (*p)
-            {
-                *p = '\0';
-                locuser = userhost;
-            }
+            locuser = (0 == remuser) ? envuser : remuser;
         }
-        else
+        else 
         {
             /* translate backslash to '+' */
-            locuser = argv[3];
-            for (p = locuser; *p; p++)
+            locuser_dom = argv[3];
+            locuser = locuser_dom;
+            for (p = locuser_dom; *p; p++)
+            {
                 if ('\\' == *p)
                 {
                     *p = '+';
-                    locuser_nodom = p + 1;
+                    locuser = p + 1;
                 }
-        }
+            }
+        }        
     }
 
+    if (0 == remuser)
+        remuser = locuser;
+   
+    write_log("LOCAL USER: %s", locuser);
+    if (locuser == remuser && locuser == 0)
+        write_log("error: invalid user");
+
+    /* parse argv[2] */    
+    drive = argv[2];
+
+    snprintf(portopt, sizeof portopt, "-oPort=%s", port);
+    snprintf(remote, sizeof remote, "%s@%s:%s", remuser, host, path);
+    snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/sshfs/%s@%s/%s", remuser, host, path);
     snprintf(idmap, sizeof idmap, "-ouid=-1,gid=-1");
-    if (0 != locuser)
-    {
-        /* get uid/gid from local user name */
-        passwd = getpwnam(locuser);
-        if (0 == passwd && 0 != locuser_nodom)
-            passwd = getpwnam(locuser_nodom);
-        if (0 != passwd)
-            snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
-    }
 
-    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, argv[2], (void *)0, environ);
+    // I don't know the reason for getting the local uid/gid
+    // as ssh needs the uid/gid from the remote user
+    // commenting for now...
+    // if (0 != locuser)
+    // {
+    //     /* get uid/gid from local user name */
+    //     passwd = getpwnam(locuser);
+    //     if (0 == passwd && 0 != locuser_nodom)
+    //         passwd = getpwnam(locuser_nodom);
+    //     if (0 != passwd)
+    //         snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
+    // }
+
+    
+    write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s", 
+        sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, drive, (void *)0, environ);
+
+    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, portopt, remote, drive, (void *)0, environ);
 
     return 1;
 }
