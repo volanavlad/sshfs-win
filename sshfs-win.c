@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], volname[256], portopt[256], remote[256];
-    char *locuser, *remuser, *locuser_dom, *host, *port, *path, *drive, *p, *envuser;
+    char *locuser, *remuser, *locuser_dom, *classname, *host, *port, *path, *drive, *p, *envuser;
 
     if (3 > argc || argc > 4)
         return 2;
@@ -82,15 +82,17 @@ int main(int argc, char *argv[])
         if ('\\' == *p)
             *p = '/';
 
-    /* skip class name (\\sshfs\) */
+    /* get class name (\\sshfs\) */
     p = argv[1];
     while ('/' == *p)
         p++;
-    while (*p && '/' != *p)
+    classname = p;
+    while (*p && '/' != *p) 
         p++;
-    while ('/' == *p)
-        p++;
-
+    if (*p)
+        *p++ = '\0';
+    //printf("class name=%s\n", classname);
+    
     /* parse instance name (syntax: [locuser=]remuser@host!port/path) */
     locuser = remuser = locuser_dom = 0;
     host = p;
@@ -157,8 +159,8 @@ int main(int argc, char *argv[])
 
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
     snprintf(remote, sizeof remote, "%s@%s:%s", remuser, host, path);
-    snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/sshfs/%s@%s/%s", remuser, host, path);
-    snprintf(volname, sizeof volname, "-ovolname=/sshfs/%s@%s/%s", remuser, host, path);
+    snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/%s/%s@%s/%s", classname, remuser, host, path);
+    snprintf(volname, sizeof volname, "-ovolname=/%s/%s@%s/%s", classname, remuser, host, path);
     snprintf(idmap, sizeof idmap, "-ouid=-1,gid=-1");
 
     // I don't know the reason for getting the local uid/gid
