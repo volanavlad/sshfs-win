@@ -6,8 +6,6 @@
 
 #define SSHFS_ARGS                      \
     "-f",                               \
-    "-opassword_stdin",                 \
-    "-opassword_stdout",                \
     "-orellinks",                       \
     "-ofstypename=SSHFS",               \
     "-oStrictHostKeyChecking=no"
@@ -27,16 +25,37 @@ static void pr_execl(const char *path, ...)
 }
 #endif
 
-void write_log(const char *fmt, ...) {
+int file_exists(const char *fname) 
+{
+    /* check if file exists */
+    return access( fname, F_OK ) != -1;
+}
+
+void write_log(const char *fmt, ...) 
+{
     char message[1000];
     va_list args;
     va_start(args, fmt);
     vsprintf(message, fmt, args);
     va_end(args);
-    FILE *f = fopen("c:\\temp\\sshfs.log", "a");
+    FILE *f = fopen("c:/temp/sshfs.log", "a");
     if (f != NULL)
         fprintf(f, "sshfs-win: debug: %s\n", message);
     fclose(f);
+}
+
+int has_keys(const char *locuser, char* keyfile) 
+{
+    char* sysdrive = getenv("SYSTEMDRIVE");
+    snprintf(keyfile, 256, "%s/users/%s/.ssh/id_rsa", sysdrive, locuser);
+    printf("key=%s\n", keyfile);
+    write_log("trying key authentication...");
+    if (!file_exists(keyfile))
+    {
+        write_log("key not found: %s", keyfile);
+        return 0;
+    }
+    return 1;
 }
 
 int main(int argc, char *argv[])
@@ -128,6 +147,7 @@ int main(int argc, char *argv[])
     if (0 == remuser)
         remuser = locuser;
    
+
     write_log("LOCAL USER: %s", locuser);
     if (locuser == remuser && locuser == 0)
         write_log("error: invalid user");
@@ -154,11 +174,21 @@ int main(int argc, char *argv[])
     //         snprintf(idmap, sizeof idmap, "-ouid=%d,gid=%d", passwd->pw_uid, passwd->pw_gid);
     // }
 
-    
-    write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s %s ", 
-        sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, remote, drive, (void *)0, environ);
+    // ssh key authenticatioin
+    // if identity file exists, test ssh authentication, if success:
 
-    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, remote, drive, (void *)0, environ);
+    char auth[256];
+    char keyfile[256];
+    printf("size=%d\n", sizeof(keyfile));
+    if (has_keys(locuser, keyfile))
+        snprintf(auth, sizeof auth, "-oIdentityFile=%s", keyfile);
+    else
+        snprintf(auth, sizeof auth, "-opassword_stdin -opassword_stdout");
+    
+    write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s", 
+        sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, auth, remote, drive, (void *)0, environ);
+
+    execle(sshfs, sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, auth, remote, drive, (void *)0, environ);
 
     return 1;
 }
