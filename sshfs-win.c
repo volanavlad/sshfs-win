@@ -3,6 +3,7 @@
 //#include <pwd.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include "util.h"
 
 #define SSHFS_ARGS                      \
     "-f",                               \
@@ -25,40 +26,16 @@ static void pr_execl(const char *path, ...)
 }
 #endif
 
-int file_exists(const char *fname) 
-{
-    /* check if file exists */
-    return access( fname, F_OK ) != -1;
-}
-
-void write_log(const char *fmt, ...) 
-{
-    char message[1000];
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(message, fmt, args);
-    va_end(args);
-    FILE *f = fopen("c:/temp/sshfs.log", "a");
-    if (f != NULL)
-        fprintf(f, "sshfs-win: debug: %s\n", message);
-    fclose(f);
-}
-
-int has_keys(const char *locuser, char* keyfile) 
-{
-    char* sysdrive = getenv("SYSTEMDRIVE");
-    snprintf(keyfile, 256, "%s/users/%s/.ssh/id_rsa", sysdrive, locuser);
-    write_log("trying key authentication...");
-    if (!file_exists(keyfile))
-    {
-        write_log("key not found: %s", keyfile);
-        return 0;
-    }
-    return 1;
-}
 
 int main(int argc, char *argv[])
 {
+    // for future use: read config file
+    // char appdir[FILENAME_MAX];
+    // get_app_path(argv[0], appdir);
+    // json_t json;    
+    // load_ini(appdir, &json);
+    // load_json(json.jsonfile, &json);
+
     static const char *sshfs = "/bin/sshfs.exe";
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
@@ -90,7 +67,6 @@ int main(int argc, char *argv[])
         p++;
     if (*p)
         *p++ = '\0';
-    //printf("class name=%s\n", classname);
     
     /* parse instance name (syntax: [locuser=]remuser@host!port/path) */
     locuser = remuser = locuser_dom = 0;
@@ -153,9 +129,6 @@ int main(int argc, char *argv[])
     if (locuser == remuser && locuser == 0)
         write_log("error: invalid user");
 
-    /* parse argv[2] */    
-    drive = argv[2];
-
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
     snprintf(remote, sizeof remote, "%s@%s:%s", remuser, host, path);
     snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/%s/%s@%s/%s", classname, remuser, host, path);
@@ -180,12 +153,15 @@ int main(int argc, char *argv[])
 
     char auth[256];
     char keyfile[256];
-    printf("size=%d\n", sizeof(keyfile));
+    //printf("size=%d\n", sizeof(keyfile));
     if (has_keys(locuser, keyfile))
         snprintf(auth, sizeof auth, "-oIdentityFile=%s", keyfile);
     else
         snprintf(auth, sizeof auth, "-opassword_stdin -opassword_stdout");
-    
+
+    /* parse argv[2] */    
+    drive = argv[2];
+
     write_log("%s %s %s %s %s %s %s %s %s %s %s %s %s %s", 
         sshfs, SSHFS_ARGS, idmap, volpfx, volname, portopt, auth, remote, drive, (void *)0, environ);
 
