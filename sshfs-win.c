@@ -48,7 +48,6 @@ int has_keys(const char *locuser, char* keyfile)
 {
     char* sysdrive = getenv("SYSTEMDRIVE");
     snprintf(keyfile, 256, "%s/users/%s/.ssh/id_rsa", sysdrive, locuser);
-    printf("key=%s\n", keyfile);
     write_log("trying key authentication...");
     if (!file_exists(keyfile))
     {
