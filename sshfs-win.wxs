@@ -96,7 +96,7 @@
                         <RegistryValue
                             Type="integer"
                             Name="Credentials"
-                            Value="1" />
+                            Value="0" />
                     </RegistryKey>
                 </RegistryKey>
             </Component>

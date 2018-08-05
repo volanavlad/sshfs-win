@@ -13,7 +13,7 @@ set DIR=%DIR:~0,-1%
 :: default values
 set DRIVE=Z:
 set HOST=LINUX
-set DRIVENAME=Simulation
+set DRIVENAME=LINUX
 
 if "%1"=="-h" goto :usage
 

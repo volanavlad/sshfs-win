@@ -18,6 +18,11 @@ set winfsp=
 for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "winfsp.*.msi"') do set winfsp=%%i
 for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "sshfs.*x64.msi"') do set sshfs=%%i
 
+echo stopping services...
+taskkill /im sshfs.exe
+taskkill /im sshfs-win.exe
+taskkill /im ssh.exe
+
 echo uninstalling %winfsp%...
 msiexec /x %winfsp%
 

@@ -62,8 +62,8 @@ $(Status)/wix: $(Status)/sshfs-win
 		$(shell cygpath -aw $(WixDir)/sshfs-win.wixobj)
 	touch $(Status)/wix
 
-$(Status)/sshfs-win: $(Status)/root sshfs-win.c
-	gcc -o $(RootDir)/bin/sshfs-win sshfs-win.c
+$(Status)/sshfs-win: $(Status)/root sshfs-win.c util.h util.c # jsmn.h jsmn.c
+	gcc -o $(RootDir)/bin/sshfs-win sshfs-win.c util.c jsmn.c -I.
 	strip $(RootDir)/bin/sshfs-win
 	touch $(Status)/sshfs-win
 
