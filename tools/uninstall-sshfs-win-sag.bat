@@ -1,5 +1,5 @@
 :: SSHFS 
-:: Uninstaller for my SSHFS version
+:: Uninstall sshfs-win-sag
 :: 08/05/2018, sganis
 
 @echo off

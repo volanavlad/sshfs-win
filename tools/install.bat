@@ -23,5 +23,5 @@ msiexec /i %sshfs%
 echo installing tools...
 set TOOLS="C:\Program Files\SSHFS-Win\tools"
 mkdir %TOOLS%
-xcopy /i %DIR% %TOOLS%
+xcopy /i %DIR%\..\tools %TOOLS%
 

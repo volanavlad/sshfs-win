@@ -11,25 +11,47 @@ if [%1]==[] goto usage
 set HOST=%1
  
 set HOME=%USERPROFILE%
-mkdir %HOME%\.ssh
  
 :: generate ssh keys if not present already
 if not exist %HOME%\.ssh\id_rsa (
 	echo Generating ssh key pair...
+	mkdir %HOME%\.ssh 2>nul
 	echo -n 'y/n' | ssh-keygen -f %HOME%\.ssh\id_rsa -q -N ""
 ) else (
 	echo Private key already exists
-	echo Generating public key...
-	ssh-keygen -f %HOME%\.ssh\id_rsa -y > %HOME%\.ssh\id_rsa.pub             
+	set RESULT=1
+	call :testssh RESULT
+	if %RESULT% equ 0 (
+		echo SSH is already working.
+		goto :eof
+	) 
 )
-:: read public key without end of line, save it to remote server
-:: ssh-copy-id %HOST%
+
+set PUBKEY=""
 echo Saving public key to %HOST%...
+::for /f "tokens=*" %%i in (%USERPROFILE%\.ssh\id_rsa.pub) do set PUBKEY=%%i
 more %USERPROFILE%\.ssh\id_rsa.pub ^
-	| ssh %HOST% -o StrictHostKeyChecking=no "cat >> .ssh/authorized_keys; dos2unix .ssh/authorized_keys"
-echo Done.
+	| ssh %HOST% -o StrictHostKeyChecking=no "cat >> .ssh/authorized_keys && sed -i 's/\r//g' .ssh/authorized_keys && chmod 440 .ssh/authorized_keys"
+
+set RESULT=1
+call :testssh RESULT
+if %RESULT% neq 0 (
+	echo SSH setup failed.
+	echo exit code: %RESULT%
+) else (
+	echo Done.
+)
 goto :eof
- 
+
+
+
+:testssh
+echo Testing ssh in %HOST%...
+ssh -q -o BatchMode=yes %HOST% exit
+set %~1=%ERRORLEVEL%
+exit /b 0
+
+
 :usage
 echo usage: %0 ^<ssh-server^>
-exit /B 1
+exit /b 1

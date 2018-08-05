@@ -1,5 +1,5 @@
 :: SSHFS 
-:: Uninstaller
+:: Uninstall sshfs-win
 :: 08/05/2018, sganis
 
 @echo off
@@ -13,18 +13,13 @@ echo uninstalling tools...
 set TOOLS="C:\Program Files\SSHFS-Win\tools"
 rmdir /s /q %TOOLS%
 
-set winfsp=
-set winfsp=
-for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "winfsp.*.msi"') do set winfsp=%%i
+set sshfs=
 for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "sshfs.*x64.msi"') do set sshfs=%%i
 
 echo stopping services...
 taskkill /im sshfs.exe
 taskkill /im sshfs-win.exe
 taskkill /im ssh.exe
-
-echo uninstalling %winfsp%...
-msiexec /x %winfsp%
 
 echo uninstalling %sshfs%...
 msiexec /x %sshfs%

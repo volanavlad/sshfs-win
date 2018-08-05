@@ -4,8 +4,8 @@
 ::
 @echo off
 
-set HOST=192.168.56.1
-set CLUSTER=vlcc
+set HOST=192.168.56.100
+set CLUSTER=cluster
 
 :: pick random node between 01 and 32
 :: set /A N=%RANDOM% * 32 / 32768 + 1

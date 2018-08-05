@@ -18,7 +18,7 @@ set DRIVENAME=LINUX
 if "%1"=="-h" goto :usage
 
 :: find next available drive
-if not [%1]==[] (
+if not "%~1"=="" (
 	set DRIVE=%1
 ) else (
 	for /f %%i in ('%DIR%\get_drive.bat') do set DRIVE=%%i
@@ -26,7 +26,7 @@ if not [%1]==[] (
 echo Drive: %DRIVE%
 
 :: get host from parameter or get_host.bat program
-if not [%2]==[] (
+if not "%~2"=="" (
 	set HOST=%2
 ) else (
 	for /f %%i in ('%DIR%\get_host.bat') do set HOST=%%i
