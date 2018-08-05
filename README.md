@@ -1,61 +1,71 @@
-## SSHFS for Windows
+# SSHFS for Windows
 
-This is a fork of https://github.com/billziss-gh/sshfs-win.
+This is a fork of https://github.com/billziss-gh/sshfs-win. 
+
+# TODO List
+
+- SSH authentication
+- Mount path simplification
+- Tools for deployment/mount/unmount/clenaup
+- Set drive name
+- Add -o volname
+- Read json config file
+- Get host from config file
+- Get user from environment variable
+- Tunning ssh parameters for performance
+
+# Development Notes
+
+## Build WinFsp
+
+1. Install Visual Studio 2015 Community, use the option "Tipical for Windows 10 development"
+   (https://go.microsoft.com/fwlink/p/?LinkId=534599)
+
+2. Install Windows SDK for Windows 10, version 1703
+   (https://go.microsoft.com/fwlink/p/?LinkID=845298)
+
+3. Install WDK for Windows 10, version 1703
+   (https://go.microsoft.com/fwlink/p/?LinkID=845980)
+
+4. Install Wix Toolset and VS 2015 extension
+   (http://wixtoolset.org/releases)
 
 
-## Development Notes
+## Build Sshfs-win
 
-Build WinFsp
-------------
-
-Install Visual Studio 2015 Community, use the option "Tipical for Windows 10 development"
-https://go.microsoft.com/fwlink/p/?LinkId=534599
-
-Install Windows SDK for Windows 10, version 1703
-https://go.microsoft.com/fwlink/p/?LinkID=845298
-
-Install WDK for Windows 10, version 1703
-https://go.microsoft.com/fwlink/p/?LinkID=845980
-
-Install Wix Toolset and VS 2015 extension
-http://wixtoolset.org/releases
-
-
-Build Sshfs-win
----------------
-
-1. Install SSHFS-Win 3.2 BETA, WinFsp 2018.2 B2, WIX Toolset 3.11.
-   Versions that I used in this test:
+1. Install SSHFS-Win 3.2 BETA, WinFsp 2018.2 B2, WIX Toolset 3.11. Versions that I used in this test:
+   
    SSHFS-Win 3.2 BETA, WinFsp 2018.2 B2, WIX Toolset 3.11.
 
 2. Install cygwin
-   Download from https://www.cygwin.com/setup-x86_64.exe
-   Run installer and follow default settings
+   
+   Download from https://www.cygwin.com/setup-x86_64.exe. Run installer and follow default settings
 
-3. Install development tools
-   Copy setup-x86_64.exe to c:\cygwin64, then from a cygwin terminal run:
+3. Install development tools. Copy setup-x86_64.exe to `C:\cygwin64`, then from a cygwin terminal run:
+   
    `$ /setup-x86_64.exe -q -B -P gcc-g++,make,automake,patch,vim,git,libglib2.0-devel,cygport,meson`
 
 4. Install cygfuse by running:
+   
    `$ /cygdrive/c/Program\ Files\ \(x86\)/WinFsp/opt/cygfuse/install.sh`
 
 5. Clone the sshfs-win repository
+   
    `$ git clone https://github.com/billziss-gh/sshfs-win.git`
 
-6. Update the sshfs submodule
-   Go to the sshfs-win project directory, then run:
+6. Update the sshfs submodule. Go to the `sshfs-win` project directory, then run:
+   
    `$ git submodule init`
    `$ git submodule update`
 
 7. Run make in parallel mode 
+   
    `$ make -j8`
 
-8. An msi file installer will be saved in .build/x64/dist folder.
-   It builds with some warnings that I coundn't get rid of, such as missing rst2man package.
+8. An msi file installer will be saved in `.build/x64/dist` folder. It builds with some warnings that I coundn't get rid of, such as missing rst2man package.
 
 
-Test
-----
+## Test
 
 ```
 set HOST=linux
@@ -65,8 +75,7 @@ set PATH=C:\Program Files\SSHFS-Win\bin;%PATH%
 sshfs.exe %USER%@%HOST%:/../..  X: -o VolumePrefix=/sshfs/%USER%@%HOST% -o rellinks -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS -o reconnect -f -F c:/users/user/.ssh/config
 ```
 
-Set drive name
---------------
+## Set drive name
 
 ```
 set DRIVENAME=Simulation
