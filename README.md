@@ -88,29 +88,24 @@ set REGKEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\
 reg add %REGKEY% /v _LabelFromReg /d %DRIVENAME% /f
 ```
 
-Debug sshfs
------------
+## Debug sshfs
 
 ```
 sshfs -o idmap=user -o debug -o sshfs_debug -o LOGLEVEL=DEBUG3 \
   -o ssh_command="ssh -vv" -d %USER%@%HOST%:/../../.. X:
 ```
 
-Issues
-------
+## Issues
 
-Windows 7 x64
-WinFsp 2018.2 B1 
-SSHFS-Win v2.7.17334
+### Windows 7 x64, WinFsp 2018.2 B1 , SSHFS-Win v2.7.17334
 
-
-1.  The only way to remove the warning "cannot create /home/user/.ssh foder" is to pass -F sshfs_config file
-2.  -F %USERPROFILE%\\sshfs_config works, but it does not if the parameter is created by sshfs-win.exe
+1.  The only way to remove the warning "cannot create /home/user/.ssh foder" is to pass `-F sshfs_config` file
+2.  `-F %USERPROFILE%\\sshfs_config` works, but it does not if the parameter is created by sshfs-win.exe
 3.  The sshfs_config file must have forward slashes, and variables are not expanded. 
-    %USERPROFILE%, or C:\\Users\\\user\\sshfs_config does not work, but C:/Users/user/sshfs_config does work.
-4.  The bash home expansion variable '~' works in cygwin terminal, but not in cmd. 
-    When running sshfs.exe from a cmd terminal, the ~/.ssh/id_rsa path is not found by ssh.
-5.  The -o mask=007 does not work, the -o create_mask does work, but not in all Linux servers. 
+    `%USERPROFILE%`, or `C:\\Users\\\user\\sshfs_config` does not work, but `C:/Users/user/sshfs_config` does work.
+4.  The bash home expansion variable `'~'` works in cygwin terminal, but not in cmd. 
+    When running sshfs.exe from a cmd terminal, the `~/.ssh/id_rsa` path is not found by ssh.
+5.  The `-o mask=007` does not work, the `-o create_mask` does work, but not in all Linux servers. 
     It seems to be overriten by some server configuration?
 6.  Consider implementing a drive name, which is different from volname and fylesystemname. 
     It seems to be set with this registry value:
@@ -122,7 +117,7 @@ SSHFS-Win v2.7.17334
 7.  Consider unifying log files and parameters
 8.  Another user can see the mount, but not access the files, the Server permissions seem to apply. 
     However, the other user can disconnect the drive.
-9.  The ssh from cygwin has a hardcoded /home/user/.ssh location, setting HOME to %USERPROFILE% does not work. 
+9.  The ssh from cygwin has a hardcoded `/home/user/.ssh` location, setting HOME to %USERPROFILE% does not work. 
     The ssh from msysgit works fine.
 10. Consider adding ssh-copy-id program
 11. Disconected drive does not reconnect. After investigation, the programs run by SYSTEM were not running. 
@@ -130,62 +125,63 @@ SSHFS-Win v2.7.17334
 12. Mounting the root directory as specified by the readme does not work: 
     `\\sshfs\user@linux` mounts my home
     `\\sshfs\user@linux\` mounts my home
-    \\sshfs\user@linux\\home\user
-    \\sshfs\user@linux\\
-    \\sshfs\user@linux\
+    `\\sshfs\user@linux\\home\user`
+    `\\sshfs\user@linux\\`
+    `\\sshfs\user@linux\`
     This format does work: 
-    \\sshfs\user@linux\..\..
-    Any path further up the root will work, such as \\sshfs\user@linux\..\..\..\..\..\..
-    From command line is just needed this: sshfs.exe user@linux:/
+    `\\sshfs\user@linux\..\..`
+    Any path further up the root will work, such as `\\sshfs\user@linux\..\..\..\..\..\..`
+    From command line is just needed this: `sshfs.exe user@linux:/`
 
-
-Windows 7 x64
-WinFsp 2018.2 B1 v1.4B2
-SSHFS-Win 3.2 BETA v3.2.18213
-
+### Windows 7 x64, WinFsp v1.4B2, SSHFS-Win v3.2.18213
 
 13. -o VolumePrefix in use, error with Status=80070050, reported as issue 44.
-14. > net use z: /delete does not kill processes run by SYSTEM, drive remains in disconnected status. 
+14. `> net use z: /delete` does not kill processes run by SYSTEM, drive remains in disconnected status. 
     The only way to cleanup is clean registry and mount from command line using sshfs, then kill the process.
     It is hard to disconnect the drive from windows explorer, it does not disconnect.
     I have to kill the sshfs process run by SYSTEM, then the drive stays in error status. The only way to remove it is to mount with the command line and kill the process in the terminal with Control+C.
-    When mounting using > net use Z: \\sshfs\user@host it requires two commands to unmount:
-    > net use Z: /del
+    When mounting using `> net use Z: \\sshfs\user@host` it requires two commands to unmount:
+    `> net use Z: /del`
     and
-    > net use \\sshfs\user@host /del
+    `> net use \\sshfs\user@host /del`
     in any order.
-    I also noticed that the remote path must be the original path that was used to mount, stored in the registry HKCU\Network, not the path reported by the > net use command.
+    I also noticed that the remote path must be the original path that was used to mount, stored in the registry `HKCU\Network`, not the path reported by the > net use command.
 
 
-Error codes:
------------
+## Error codes:
 
-0x800704b3 the server is down, path incorrect
-Wrong path: no such file or directory
-Cannot set WinFsp-FUSE file system mount point. 
+- 0x800704b3 the server is down, path incorrect
+- Wrong path: no such file or directory
+- Cannot set WinFsp-FUSE file system mount point. 
+  
   The service sshfs has failed to start (Status=c00000ca): Drive letter incorrect
+  
   The service sshfs has failed to start (Status=80070050): VolumePrefix is in use
+  
   The service sshfs has failed to start (Status=c000000d): VolumePrefix with backslashes
 
 
-BUG01
------
+## BUG01
 
 I am using the command line with these arguments:
 
+```
 C:\Program Files\SSHFS-Win\bin>sshfs.exe %USER%@%HOST%:/../..  X: -o VolumePrefix=/sshfs/%USER%@%HOST% -o rellinks -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS -o reconnect -f -F c:/users/user/.ssh/config
+```
 
 The config file has this:
 
+```
 Host *
    ServerAliveInterval 60
    UserKnownHostsFile=C:/Users/user/.ssh/known_hosts
    StrictHostKeyChecking no
    IdentityFile C:/Users/user/.ssh/id_rsa
+```
 
 After some inactivity, the server disconnects and I get the error below, with the X: drive unavailable.  
 
-#*******  output: ******************
+```
 Connection reset by 192.168.56.100 port 22
 remote host has disconnected
 read: Software caused connection abort
@@ -197,3 +193,4 @@ Frame        Function    Args
 0000546C861  7FFD89383B88 (7FFD893A07D8, 000027B5B20, 00000000000, 00000000000)
 End of stack trace (more stack frames may be present)
 read: Software caused connection abort
+```
