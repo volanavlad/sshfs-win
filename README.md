@@ -1,71 +1,185 @@
-<h1 align="center">
-    SSHFS-Win &middot; SSHFS for Windows
-</h1>
+## SSHFS for Windows
 
-<p align="center">
-    <b>Install</b><br>
-    <a href="https://github.com/billziss-gh/sshfs-win/releases/latest">
-        <img src="https://img.shields.io/github/release/billziss-gh/sshfs-win.svg?label=stable&style=for-the-badge"/>
-    </a>
-    <a href="https://chocolatey.org/packages/sshfs">
-        <img src="https://img.shields.io/badge/choco-install%20sshfs-black.svg?style=for-the-badge"/>
-    </a>
-    <a href="https://github.com/mhogomchungu/sirikali/releases/latest">
-        <img src="https://img.shields.io/github/release/mhogomchungu/sirikali.svg?label=GUI%20Frontend&style=for-the-badge"/>
-    </a>
-</p>
+This is a fork of https://github.com/billziss-gh/sshfs-win.
 
-SSHFS-Win is a minimal port of [SSHFS](https://github.com/libfuse/sshfs) to Windows. Under the hood it uses [Cygwin](https://cygwin.com) for the POSIX environment and [WinFsp](https://github.com/billziss-gh/winfsp) for the FUSE functionality.
 
-## How to install
+## Development Notes
 
-- Install the latest version of [WinFsp](https://github.com/billziss-gh/winfsp/releases/latest).
-- Install the latest version of [SSHFS-Win](https://github.com/billziss-gh/sshfs-win/releases/latest). Choose the x64 or x86 installer according to your computer's architecture.
+Build WinFsp
+------------
 
-## How to use
+Install Visual Studio 2015 Community, use the option "Tipical for Windows 10 development"
+https://go.microsoft.com/fwlink/p/?LinkId=534599
 
-Once you have installed WinFsp and SSHFS-Win you can start an SSHFS session to a remote computer using the following syntax:
+Install Windows SDK for Windows 10, version 1703
+https://go.microsoft.com/fwlink/p/?LinkID=845298
 
-    \\sshfs\[locuser=]user@host[!port][\path]
+Install WDK for Windows 10, version 1703
+https://go.microsoft.com/fwlink/p/?LinkID=845980
 
-For example, you can map a network drive to billz@linux-host by using the syntax:
+Install Wix Toolset and VS 2015 extension
+http://wixtoolset.org/releases
 
-    \\sshfs\billz@linux-host
 
-As a more complicated example, you can map a network drive to billz@linux-host at port 9999, but give access rights to the local user billziss by using the syntax:
+Build Sshfs-win
+---------------
 
-    \\sshfs\billziss=billz@linux-host!9999
+1. Install SSHFS-Win 3.2 BETA, WinFsp 2018.2 B2, WIX Toolset 3.11.
+   Versions that I used in this test:
+   SSHFS-Win 3.2 BETA, WinFsp 2018.2 B2, WIX Toolset 3.11.
 
-It is also possible to map the remote root directory by starting the `path` with a double backslash as in the following example:
+2. Install cygwin
+   Download from https://www.cygwin.com/setup-x86_64.exe
+   Run installer and follow default settings
 
-    \\sshfs\billz@linux-host\\home\billz
+3. Install development tools
+   Copy setup-x86_64.exe to c:\cygwin64, then from a cygwin terminal run:
+   `$ /setup-x86_64.exe -q -B -P gcc-g++,make,automake,patch,vim,git,libglib2.0-devel,cygport,meson`
 
-You can also mount the remote's root `/` directory using the following format:
+4. Install cygfuse by running:
+   `$ /cygdrive/c/Program\ Files\ \(x86\)/WinFsp/opt/cygfuse/install.sh`
 
-    \\sshfs\user@host\..\..
+5. Clone the sshfs-win repository
+   `$ git clone https://github.com/billziss-gh/sshfs-win.git`
 
-You can use the Windows Explorer "Map Network Drive" functionality or you can use the `net use` command from the command line.
+6. Update the sshfs submodule
+   Go to the sshfs-win project directory, then run:
+   `$ git submodule init`
+   `$ git submodule update`
 
-## GUI front end
+7. Run make in parallel mode 
+   `$ make -j8`
 
-[SiriKali](https://mhogomchungu.github.io/sirikali/) is a GUI front end for SSHFS-Win (and other file systems). Instructions on setting up SiriKali for SSHFS-Win can be found at this [link](https://github.com/mhogomchungu/sirikali/wiki/Frequently-Asked-Questions#90-how-do-i-add-options-to-connect-to-an-ssh-server). Please report problems with SiriKali in its [issues](https://github.com/mhogomchungu/sirikali/issues) page.
+8. An msi file installer will be saved in .build/x64/dist folder.
+   It builds with some warnings that I coundn't get rid of, such as missing rst2man package.
 
-## Project Organization
 
-This is a very simple project:
+Test
+----
 
-- `sshfs` is a submodule pointing to the original SSHFS project.
-- `sshfs-win.c` is a simple wrapper around the sshfs program that is used to implement the "Map Network Drive" functionality.
-- `sshfs-win.wxs` is a the Wix file that describes the SSHFS-Win installer.
-- `patches` is a directory with a couple of simple patches over SSHFS.
-- `Makefile` drives the overall process of building SSHFS-Win and packaging it into an MSI.
+```
+set HOST=linux
+set HOME=%USERPROFILE:\=/%
+cd C:\Program Files\SSHFS-Win\bin
+set PATH=C:\Program Files\SSHFS-Win\bin;%PATH%
+sshfs.exe %USER%@%HOST%:/../..  X: -o VolumePrefix=/sshfs/%USER%@%HOST% -o rellinks -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS -o reconnect -f -F c:/users/user/.ssh/config
+```
 
-## License
+Set drive name
+--------------
 
-SSHFS-Win uses the same license as SSHFS, which is GPLv2+. It interfaces with WinFsp which is GPLv3 with a FLOSS exception.
+```
+set DRIVENAME=Simulation
+set REGKEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##sshfs#%USER%@%HOST%
+reg add %REGKEY% /v _LabelFromReg /d %DRIVENAME% /f
+```
 
-It also packages the following components:
+Debug sshfs
+-----------
 
-- Cygwin: LGPLv3
-- GLib2: LGPLv2
-- SSH: "all components are under a BSD licence, or a licence more free than that"
+```
+sshfs -o idmap=user -o debug -o sshfs_debug -o LOGLEVEL=DEBUG3 \
+  -o ssh_command="ssh -vv" -d %USER%@%HOST%:/../../.. X:
+```
+
+Issues
+------
+
+Windows 7 x64
+WinFsp 2018.2 B1 
+SSHFS-Win v2.7.17334
+
+
+1.  The only way to remove the warning "cannot create /home/user/.ssh foder" is to pass -F sshfs_config file
+2.  -F %USERPROFILE%\\sshfs_config works, but it does not if the parameter is created by sshfs-win.exe
+3.  The sshfs_config file must have forward slashes, and variables are not expanded. 
+    %USERPROFILE%, or C:\\Users\\\user\\sshfs_config does not work, but C:/Users/user/sshfs_config does work.
+4.  The bash home expansion variable '~' works in cygwin terminal, but not in cmd. 
+    When running sshfs.exe from a cmd terminal, the ~/.ssh/id_rsa path is not found by ssh.
+5.  The -o mask=007 does not work, the -o create_mask does work, but not in all Linux servers. 
+    It seems to be overriten by some server configuration?
+6.  Consider implementing a drive name, which is different from volname and fylesystemname. 
+    It seems to be set with this registry value:
+    ```
+    set DRIVENAME=Linux
+    set REGKEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\##sshfs#%USER%@%HOST%
+    reg add %REGKEY% /v _LabelFromReg /d %DRIVENAME% /f
+    ```
+7.  Consider unifying log files and parameters
+8.  Another user can see the mount, but not access the files, the Server permissions seem to apply. 
+    However, the other user can disconnect the drive.
+9.  The ssh from cygwin has a hardcoded /home/user/.ssh location, setting HOME to %USERPROFILE% does not work. 
+    The ssh from msysgit works fine.
+10. Consider adding ssh-copy-id program
+11. Disconected drive does not reconnect. After investigation, the programs run by SYSTEM were not running. 
+    Rebooting solved the issue.
+12. Mounting the root directory as specified by the readme does not work: 
+    `\\sshfs\user@linux` mounts my home
+    `\\sshfs\user@linux\` mounts my home
+    \\sshfs\user@linux\\home\user
+    \\sshfs\user@linux\\
+    \\sshfs\user@linux\
+    This format does work: 
+    \\sshfs\user@linux\..\..
+    Any path further up the root will work, such as \\sshfs\user@linux\..\..\..\..\..\..
+    From command line is just needed this: sshfs.exe user@linux:/
+
+
+Windows 7 x64
+WinFsp 2018.2 B1 v1.4B2
+SSHFS-Win 3.2 BETA v3.2.18213
+
+
+13. -o VolumePrefix in use, error with Status=80070050, reported as issue 44.
+14. > net use z: /delete does not kill processes run by SYSTEM, drive remains in disconnected status. 
+    The only way to cleanup is clean registry and mount from command line using sshfs, then kill the process.
+    It is hard to disconnect the drive from windows explorer, it does not disconnect.
+    I have to kill the sshfs process run by SYSTEM, then the drive stays in error status. The only way to remove it is to mount with the command line and kill the process in the terminal with Control+C.
+    When mounting using > net use Z: \\sshfs\user@host it requires two commands to unmount:
+    > net use Z: /del
+    and
+    > net use \\sshfs\user@host /del
+    in any order.
+    I also noticed that the remote path must be the original path that was used to mount, stored in the registry HKCU\Network, not the path reported by the > net use command.
+
+
+Error codes:
+-----------
+
+0x800704b3 the server is down, path incorrect
+Wrong path: no such file or directory
+Cannot set WinFsp-FUSE file system mount point. 
+  The service sshfs has failed to start (Status=c00000ca): Drive letter incorrect
+  The service sshfs has failed to start (Status=80070050): VolumePrefix is in use
+  The service sshfs has failed to start (Status=c000000d): VolumePrefix with backslashes
+
+
+BUG01
+-----
+
+I am using the command line with these arguments:
+
+C:\Program Files\SSHFS-Win\bin>sshfs.exe %USER%@%HOST%:/../..  X: -o VolumePrefix=/sshfs/%USER%@%HOST% -o rellinks -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS -o reconnect -f -F c:/users/user/.ssh/config
+
+The config file has this:
+
+Host *
+   ServerAliveInterval 60
+   UserKnownHostsFile=C:/Users/user/.ssh/known_hosts
+   StrictHostKeyChecking no
+   IdentityFile C:/Users/user/.ssh/id_rsa
+
+After some inactivity, the server disconnects and I get the error below, with the X: drive unavailable.  
+
+#*******  output: ******************
+Connection reset by 192.168.56.100 port 22
+remote host has disconnected
+read: Software caused connection abort
+read: Software caused connection abort
+      2 [main] sshfs 12904 C:\Program Files\SSHFS-Win\bin\sshfs.exe: *** fatal error in forked process - failed to create new win32 semaphore, currentvalue 4294967295, Win32 error 87
+Stack trace:
+Frame        Function    Args
+0000546C168  0018005C9FE (00180253992, 0018021BC46, 00000000057, 0000546B010)
+0000546C861  7FFD89383B88 (7FFD893A07D8, 000027B5B20, 00000000000, 00000000000)
+End of stack trace (more stack frames may be present)
+read: Software caused connection abort
