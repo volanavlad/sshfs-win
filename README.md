@@ -69,10 +69,15 @@ This is a fork of https://github.com/billziss-gh/sshfs-win.
 
 ```
 set HOST=linux
+:: replace \ by / in the path
+:: setting HOME is not needed in the last version
 set HOME=%USERPROFILE:\=/%
 cd C:\Program Files\SSHFS-Win\bin
 set PATH=C:\Program Files\SSHFS-Win\bin;%PATH%
-sshfs.exe %USER%@%HOST%:/../..  X: -o VolumePrefix=/sshfs/%USER%@%HOST% -o rellinks -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS -o reconnect -f -F c:/users/user/.ssh/config
+
+sshfs.exe %USER%@%HOST%:/../..  X: -o rellinks -o reconnect -f ^
+   -o VolumePrefix=/sshfs/%USER%@%HOST%/../.. -o volname=/sshfs/%USER%@%HOST% ^
+   -o uid=-1,gid=-1,create_umask=0007 -o FileSystemName=SSHFS
 ```
 
 ## Set drive name
