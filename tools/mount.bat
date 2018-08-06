@@ -56,7 +56,12 @@ set REGKEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\
 reg add %REGKEY% /v _LabelFromReg /d %DRIVENAME% /f
 
 :: run sshfs with params
-"%SSHFS%\sshfs.exe" %USER%@%HOST%:/ %DRIVE% -f -orellinks -oreconnect -ouid=-1,gid=-1,create_umask=0007 -oVolumePrefix=/sshfs/%USER%@%HOST% -ovolname=LINUX-%HOST% -oFileSystemName=SSHFS -oStrictHostKeyChecking=no -oServerAliveInterval=10
+"%SSHFS%\sshfs.exe" %USER%@%HOST%:/ %DRIVE% ^
+      -f -orellinks -oreconnect -ouid=-1,gid=-1,create_umask=007 ^
+      -oVolumePrefix=/sshfs/%USER%@%HOST% -ovolname=%USER%@%HOST% ^
+      -oFileSystemName=SSHFS -oStrictHostKeyChecking=no ^
+      -oServerAliveInterval=10 ^
+      -o ssh_command="ssh -v" 
 
 goto :eof
 
