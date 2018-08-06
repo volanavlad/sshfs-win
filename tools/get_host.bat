@@ -4,7 +4,7 @@
 ::
 @echo off
 
-set HOST=192.168.56.100
+set HOST=10.0.0.10
 set CLUSTER=cluster
 
 :: pick random node between 01 and 32
