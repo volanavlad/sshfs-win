@@ -2,7 +2,7 @@
 :: Installer
 :: 08/05/2018, sganis
 
-@echo off
+::@echo off
 setlocal
 
 :: this script directory
@@ -21,13 +21,14 @@ echo installing %sshfs%...
 ::msiexec /i %sshfs%
 
 echo installing tools...
-set TOOLS="C:\Program Files\SSHFS-Win\tools"
-mkdir %TOOLS%
-xcopy /i %DIR%\..\tools %TOOLS%
+set SSHFS="C:\Program Files\SSHFS-Win"
+mkdir %SSHFS%\tools
+xcopy /i %DIR%\..\tools %SSHFS%\tools
 
+:: set home directory
+echo db_home: windows > %SSHFS%\etc\nsswitch.conf
 
 :: Set user permissions
-echo on
-icacls %TOOLS% /grant %USERNAME%:(oi)(ci)f /t
+icacls %SSHFS%\tools /grant %USERNAME%:(oi)(ci)f /t
 
 pause
