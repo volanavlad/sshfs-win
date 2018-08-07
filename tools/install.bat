@@ -21,14 +21,14 @@ echo installing %sshfs%...
 ::msiexec /i %sshfs%
 
 echo installing tools...
-set SSHFS="C:\Program Files\SSHFS-Win"
-mkdir %SSHFS%\tools
-xcopy /i %DIR%\..\tools %SSHFS%\tools
+set "SSHFS=C:\Program Files\SSHFS-Win"
+mkdir "%SSHFS%\tools" 2>nul
+xcopy "%DIR%" "%SSHFS%\tools" /i /y
 
 :: set home directory
-echo db_home: windows > %SSHFS%\etc\nsswitch.conf
+echo db_home: windows > "%SSHFS%\etc\nsswitch.conf"
 
 :: Set user permissions
-icacls %SSHFS%\tools /grant %USERNAME%:(oi)(ci)f /t
+icacls "%SSHFS%\tools" /grant %USERNAME%:(oi)(ci)f /t
 
 pause
