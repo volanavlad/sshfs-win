@@ -15,13 +15,19 @@ for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "winfsp.*.msi"') do set winfs
 for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "sshfs.*x64.msi"') do set sshfs=%%i
 
 echo installing %winfsp%...
-msiexec /i %winfsp%
+::msiexec /i %winfsp%
 
 echo installing %sshfs%...
-msiexec /i %sshfs%
+::msiexec /i %sshfs%
 
 echo installing tools...
 set TOOLS="C:\Program Files\SSHFS-Win\tools"
 mkdir %TOOLS%
 xcopy /i %DIR%\..\tools %TOOLS%
 
+
+:: Set user permissions
+echo on
+icacls %TOOLS% /grant %USERNAME%:(oi)(ci)f /t
+
+pause
