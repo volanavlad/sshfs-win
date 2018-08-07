@@ -148,6 +148,8 @@ sshfs -o idmap=user -o debug -o sshfs_debug -o LOGLEVEL=DEBUG3 \
     I also noticed that the remote path must be the original path that was used to mount, stored in the registry `HKCU\Network`, not the path reported by the > net use command.
 15. BUG: copy files between 2 drives supported?
 16. New version with fuse3 unstable, copy/paste folder crashes sshfs process, copy file hangs explorer.
+17. Resource temporarily unavailable, bug
+
 
 ## Error codes:
 
