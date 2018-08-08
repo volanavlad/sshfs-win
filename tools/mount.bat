@@ -35,11 +35,11 @@ echo Selected host: %HOST%
 
 :: get info from environment variables
 set USER=%USERNAME%
-set HOME=%USERPROFILE:\=/%
-set LOG1=%HOME%/.ssh/winfsp.log
-set LOG2=%HOME%/.ssh/sshfs.log
+set HOME=%USERPROFILE%
+set LOG1=%HOME%\.ssh\winfsp.log
+set LOG2=%HOME%\.ssh\sshfs.log
 ::echo SSHFS Log file > %LOG%
-set SSHFS=%ProgramFiles:\=/%/SSHFS-Win/bin
+set SSHFS=%ProgramFiles%\SSHFS-Win\bin
 set PATH=%SSHFS%;%PATH%
 
 :: create ssh config file
@@ -56,8 +56,15 @@ set REGKEY=HKCU\Software\Microsoft\Windows\CurrentVersion\Explorer\MountPoints2\
 reg add %REGKEY% /v _LabelFromReg /d %DRIVENAME% /f
 
 :: run sshfs with params
-"%SSHFS%\sshfs.exe" %USER%@%HOST%:/ %DRIVE% -f -orellinks -oreconnect -ouid=-1,gid=-1,create_umask=0007 -oVolumePrefix=/sshfs/%USER%@%HOST% -ovolname=LINUX-%HOST% -oFileSystemName=SSHFS -oStrictHostKeyChecking=no -oServerAliveInterval=10
-
+echo on
+"%SSHFS%\sshfs.exe" %USER%@%HOST%:/ %DRIVE% -f -orellinks -oreconnect ^
+    -ouid=-1,gid=-1,create_umask=0007 -oVolumePrefix=/sshfs/%USER%@%HOST% ^
+    -ovolname=LINUX-%HOST% -oFileSystemName=SSHFS -oStrictHostKeyChecking=no ^
+    -oServerAliveInterval=10 -oServerAliveCountMax=10000 ^
+    -oFileInfoTimeout=10000 -oDirInfoTimeout=10000 -oVolumeInfoTimeout=10000 ^
+    -ossh_command='ssh -vv'
+	::-ossh_command='autossh -M 0 -vv' ^
+    
 goto :eof
 
 :usage
