@@ -2,7 +2,7 @@
 :: Installer
 :: 08/05/2018, sganis
 
-@echo off
+::@echo off
 setlocal
 
 :: this script directory
@@ -15,13 +15,20 @@ for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "winfsp.*.msi"') do set winfs
 for /f "tokens=5" %%i in ('dir %DIR% ^| findstr /r "sshfs.*x64.msi"') do set sshfs=%%i
 
 echo installing %winfsp%...
-msiexec /i %winfsp%
+::msiexec /i %winfsp%
 
 echo installing %sshfs%...
-msiexec /i %sshfs%
+::msiexec /i %sshfs%
 
 echo installing tools...
-set TOOLS="C:\Program Files\SSHFS-Win\tools"
-mkdir %TOOLS%
-xcopy /i %DIR%\..\tools %TOOLS%
+set "SSHFS=C:\Program Files\SSHFS-Win"
+mkdir "%SSHFS%\tools" 2>nul
+xcopy "%DIR%" "%SSHFS%\tools" /i /y
 
+:: set home directory
+echo db_home: windows > "%SSHFS%\etc\nsswitch.conf"
+
+:: Set user permissions
+icacls "%SSHFS%\tools" /grant %USERNAME%:(oi)(ci)f /t
+
+pause
