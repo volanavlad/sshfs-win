@@ -197,3 +197,23 @@ Frame        Function    Args
 End of stack trace (more stack frames may be present)
 read: Software caused connection abort
 ```
+
+
+# Build ssh with visual studio
+
+1. Install Active Perl (perl in cygwin didn't work). 
+2. Build openssl. In a VS terminal run:
+
+   ```
+   > perl Configure VC-WIN64A no-asm --prefix=C:\OpenSSL
+   > ms\do_win64a
+   > nmake -f ms\nt.mak install
+   ```
+3. Rename libraries located in c:\OpenSSL\lib:
+   ```
+   libeay32.lib -> libcypto.lib
+   ssleay32.lib -> libssl.lib 
+   ```
+2. Clone openssh for windows at https://github.com/PowerShell/openssh-portable.git
+3. Open "contrib\win32\openssh\Win32-OpenSSH.sln" in visual studio. Retarget if needed. Add additional includes: c:\OpenSSL\include, and Additionals link libraries: c:\OpenSSL\lib.
+4. Build libssh, openbsd_compat, posix_compat, ssh, and ssh-keygen.
