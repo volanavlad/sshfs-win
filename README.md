@@ -202,7 +202,7 @@ read: Software caused connection abort
 # Build ssh with visual studio
 
 1. Install Active Perl (perl in cygwin didn't work). 
-2. Build openssl. In a VS terminal run:
+2. Build OpenSSL. Download latest source code tar.gz and untar. In a VS terminal go to the source folder and run:
 
    ```
    > perl Configure VC-WIN64A no-asm --prefix=C:\OpenSSL
