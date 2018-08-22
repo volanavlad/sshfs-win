@@ -228,7 +228,7 @@ Using `> net use` from from command line translates to `user@host:/` and mounts 
 
 The solution is to mount the root path by default. This will make the mounting path consistent and will remove the current confusion. Anyone using this technology is already familiar with the Linux file system and this change will not produce any friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided to him/her by the IT guys.
 
-| sshfs-win.exe       | translates to | should be |
+| sshfs-win.exe args      | translates to | should translate to |
 | -------------       |---------------| ----------|
 | `user@host`         | `user@host:`    | user@host:/ |
 | `user@host\`        | `user@host:`    | user@host:/ |
