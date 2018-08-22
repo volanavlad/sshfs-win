@@ -239,7 +239,7 @@ In the table below, row 3 and 4 are the problem, so the user has to rely on some
 |5   | `user@host\\\\\`    | `user@host:///` | user@host:/ |
 |6   | `user@host\..\`     | `user@host:../` | user@host:/../ |
 
-I was planning to send a pull request, but the solution is simple, just replace line 78 in sshfs-win.c by this block and `#include <string.h>`:
+To implement this solution, just replace line 78 in sshfs-win.c by this block and `#include <string.h>`:
 
 ```c
     path = p;
@@ -253,3 +253,5 @@ I was planning to send a pull request, but the solution is simple, just replace 
         path = s;
     }
 ```
+
+I was planning to send a pull request, but I don't know how to send this small code without sending too many changes in my branch.
