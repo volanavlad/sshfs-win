@@ -222,9 +222,9 @@ read: Software caused connection abort
 # Feature request: mount root by default
 This is related to issues...
 
-`sshfs-win.exe` creates a sshfs.exe call with arguments. Let's blame windows first. The problem starts when we use double slashes to mount the root path like `user@host\\path`. 
+`sshfs-win.exe` creates a `sshfs.exe` call with arguments. The problem appears when we use double slashes to mount the root path like `user@host\\path`. 
 
-From command line, `> net use z: user@host\` translates to `user@host:` and mounts the home directory, `> net use z: user@host\\` translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into `user@host:` and mounts the home directory, which is not the user's intention and that creates all the confusion. 
+From command line, `> net use z: user@host\` translates to `user@host:` and mounts the home directory, `> net use z: user@host\\` translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into `user@host:` and mounts the home directory, which is not the user's intention and that creates all the confusion. Windows is to blame here, double black slashes are not interpreted consistently with different apps. 
 
 The solution is to mount the root path by default to make the mounting path consistent. Anyone using this technology is already familiar with the Linux file system and this change will remove the current friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided by some IT support.
 
