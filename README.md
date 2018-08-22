@@ -224,7 +224,7 @@ This is related to issues...
 
 `sshfs-win.exe` creates a sshfs.exe call with arguments. Let's blame windows first. The problem starts when we use double slashes to mount the root path like `user@host\\path`. 
 
-Using net use from from command line translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into user@host: and mounts the home directory. 
+Using `> net use` from from command line translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into `user@host:` and mounts the home directory. 
 
 The solution is to mount the root path by default. This will make the mounting path consistent and will remove the current confusion. Anyone using this technology is already familiar with the Linux file system and this change will not produce any friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided to him/her by the IT guys.
 
