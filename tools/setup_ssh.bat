@@ -3,7 +3,7 @@
 :: 07/31/2018, sganis
 :: Dependencies: ssh, ssh-keygen,
  
-@echo off
+::@echo off
  
 :: check for parameters
 if [%1]==[] goto usage
@@ -11,7 +11,9 @@ if [%1]==[] goto usage
 set HOST=%1
  
 set HOME=%USERPROFILE%
- 
+set PATH=C:\Program Files\SSHFS-Win\bin;%PATH%
+set RESULT=1
+	
 :: generate ssh keys if not present already
 if not exist %HOME%\.ssh\id_rsa (
 	echo Generating ssh key pair...
@@ -19,7 +21,6 @@ if not exist %HOME%\.ssh\id_rsa (
 	echo -n 'y/n' | ssh-keygen -f %HOME%\.ssh\id_rsa -q -N ""
 ) else (
 	echo Private key already exists
-	set RESULT=1
 	call :testssh RESULT
 	if %RESULT% equ 0 (
 		echo SSH is already working.
