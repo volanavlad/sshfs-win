@@ -149,6 +149,11 @@ sshfs -o idmap=user -o debug -o sshfs_debug -o LOGLEVEL=DEBUG3 \
 15. BUG: copy files between 2 drives supported?
 16. New version with fuse3 unstable, copy/paste folder crashes sshfs process, copy file hangs explorer.
 17. Resource temporarily unavailable, bug
+18. Cygwin rebase issue:
+    https://kc.mcafee.com/corporate/index?page=content&id=KB55075
+    Mandatory ASLR in windows defender must be disabled?
+19. AV cygssp-0.dll missing
+
 
 
 ## Error codes:
