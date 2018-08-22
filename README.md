@@ -220,7 +220,7 @@ read: Software caused connection abort
 
 
 # Feature request: mount root by default
-This is related to issues...
+This is related to issues #12 and probably #5, #27, and #37.
 
 `sshfs-win.exe` creates a `sshfs.exe` call with arguments. The problem appears when we use double slashes to mount the root path like `user@host\\path`. 
 
@@ -238,3 +238,18 @@ In the table below, row 3 and 4 are the problem, so the user has to rely on some
 |4   | `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | user@host:/path |
 |5   | `user@host\\\\\`    | `user@host:///` | user@host:/ |
 |6   | `user@host\..\`     | `user@host:../` | user@host:/../ |
+
+I was planning to send a pull request, but the solution is simple, just replace line 78 in sshfs-win.c by this block:
+
+```
+    path = p;
+
+    /* mount root by default, prepend a slash before path if needed */
+    if (*p != '/')
+    {
+        char s[256];
+        strcpy(s, "/");
+        strcat(s, p);
+        path = s;
+    }
+```
