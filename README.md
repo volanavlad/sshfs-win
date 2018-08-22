@@ -422,3 +422,18 @@ read: Software caused connection abort
 2. Clone openssh for windows at https://github.com/PowerShell/openssh-portable.git
 3. Open "contrib\win32\openssh\Win32-OpenSSH.sln" in visual studio. Retarget if needed. Add additional includes: c:\OpenSSL\include, and Additionals link libraries: c:\OpenSSL\lib.
 4. Build libssh, openbsd_compat, posix_compat, ssh, and ssh-keygen.
+
+
+# Feature request: mount root by default
+This is related to issues...
+sshfs-win.exe creates a sshfs.exe call with arguments. Let's blame windows first. The problem starts when we use user@host\\path. Using net use from from command line translates to user@host:/ and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into user@host: and mounts the home directory. 
+The solution is to mount the root path by default. This will make the mounting path consistent and will remove the current confusion. Anyone using this technology is already familiar with the Linux file system and this change will not produce any friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided to him/her by the IT guys.
+
+| sshfs-win.exe       | translates to | should be |
+| -------------       |---------------| ----------|
+| `user@host`         | `user@host:`    | user@host:/ |
+| `user@host\`        | `user@host:`    | user@host:/ |
+| `user@host\\`       | `user@host:/` if net use, but <br> `user@host:` if map drive | user@host:/ |
+| `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | user@host:/path |
+| `user@host\\\\\`    | `user@host:///` | user@host:/ |
+| `user@host\..\`     | `user@host:../` | user@host:/../ |

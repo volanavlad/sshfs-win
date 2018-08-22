@@ -3,6 +3,7 @@
 //#include <pwd.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "util.h"
 
 #define SSHFS_ARGS                      \
@@ -11,7 +12,7 @@
     "-ofstypename=SSHFS",               \
     "-oStrictHostKeyChecking=no"
 
-#if 0
+#if 1
 #define execle pr_execl
 static void pr_execl(const char *path, ...)
 {
@@ -40,7 +41,7 @@ int main(int argc, char *argv[])
     static const char *environ[] = { "PATH=/bin", 0 };
     struct passwd *passwd;
     char idmap[64], volpfx[256], volname[256], portopt[256], remote[256];
-    char *locuser, *remuser, *locuser_dom, *classname, *host, *port, *path, *drive, *p, *envuser;
+    char *locuser, *user, *locuser_dom, *classname, *host, *port, *path, *drive, *p, *envuser;
 
     if (3 > argc || argc > 4)
         return 2;
@@ -68,8 +69,8 @@ int main(int argc, char *argv[])
     if (*p)
         *p++ = '\0';
     
-    /* parse instance name (syntax: [locuser=]remuser@host!port/path) */
-    locuser = remuser = locuser_dom = 0;
+    /* parse instance name (syntax: [locuser=]user@host!port/path) */
+    locuser = user = locuser_dom = 0;
     host = p;
     port = "22";
     while (*p && '/' != *p)
@@ -83,7 +84,7 @@ int main(int argc, char *argv[])
         else if ('@' == *p)
         {
             *p = '\0';
-            remuser = host;
+            user = host;
             host = p + 1;
         }
         else if ('!' == *p)
@@ -95,15 +96,24 @@ int main(int argc, char *argv[])
     }
     if (*p)
         *p++ = '\0';
+    
     path = p;
 
+    /* mount root by default, prepend a slash before path if needed */
+    if (*p != '/')
+    {
+        char s[256];
+        strcpy(s, "/");
+        strcat(s, p);
+        path = s;
+    }
 
     /* get local user name */
     if (0 == locuser)
     {
         if (3 == argc)
         {
-            locuser = (0 == remuser) ? envuser : remuser;
+            locuser = (0 == user) ? envuser : user;
         }
         else 
         {
@@ -121,18 +131,18 @@ int main(int argc, char *argv[])
         }        
     }
 
-    if (0 == remuser)
-        remuser = locuser;
+    if (0 == user)
+        user = locuser;
    
 
     write_log("LOCAL USER: %s", locuser);
-    if (locuser == remuser && locuser == 0)
+    if (locuser == user && locuser == 0)
         write_log("error: invalid user");
 
     snprintf(portopt, sizeof portopt, "-oPort=%s", port);
-    snprintf(remote, sizeof remote, "%s@%s:%s", remuser, host, path);
-    snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/%s/%s@%s/%s", classname, remuser, host, path);
-    snprintf(volname, sizeof volname, "-ovolname=/%s/%s@%s/%s", classname, remuser, host, path);
+    snprintf(remote, sizeof remote, "%s@%s:%s", user, host, path);
+    snprintf(volpfx, sizeof volpfx, "-oVolumePrefix=/%s/%s@%s/%s", classname, user, host, path);
+    snprintf(volname, sizeof volname, "-ovolname=/%s/%s@%s/%s", classname, user, host, path);
     snprintf(idmap, sizeof idmap, "-ouid=-1,gid=-1");
 
     // I don't know the reason for getting the local uid/gid
