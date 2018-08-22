@@ -228,6 +228,8 @@ From command line, `> net use z: user@host\` translates to `user@host:` and moun
 
 The solution is to mount the root path by default to make the mounting path consistent. Anyone using this technology is already familiar with the Linux file system and this change will remove the current friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided by some IT support.
 
+In the table below, row 3 and 4 are the problem, so the user has to rely on something like `user@host\..\..\..\..\` to mount the root path. The problem is eliminated with the proposed solution. 
+
 |Row | sshfs-win.exe args  | today translates to | should translate to |
 |---:| -------------       |---------------| ----------|
 |1   | `user@host`         | `user@host:`    | user@host:/ |
