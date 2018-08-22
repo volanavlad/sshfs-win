@@ -224,15 +224,15 @@ This is related to issues...
 
 `sshfs-win.exe` creates a sshfs.exe call with arguments. Let's blame windows first. The problem starts when we use double slashes to mount the root path like `user@host\\path`. 
 
-Using `> net use` from from command line translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into `user@host:` and mounts the home directory. 
+From command line, `> net use z: user@host\` translates to `user@host:` and mounts the home directory, `> net use z: user@host\\` translates to `user@host:/` and mounts the root path, but using the network mapping drive form windows explorer, double slashes are transformed into one which translates into `user@host:` and mounts the home directory, which is not the user's intention and that creates all the confusion. 
 
-The solution is to mount the root path by default. This will make the mounting path consistent and will remove the current confusion. Anyone using this technology is already familiar with the Linux file system and this change will not produce any friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided to him/her by the IT guys.
+The solution is to mount the root path by default to make the mounting path consistent. Anyone using this technology is already familiar with the Linux file system and this change will remove the current friction. Even if a user needs to mount the home directory and has zero knowledge of Linux, the home full path can be provided by some IT support.
 
-| sshfs-win.exe args      | translates to | should translate to |
-| -------------       |---------------| ----------|
-| `user@host`         | `user@host:`    | user@host:/ |
-| `user@host\`        | `user@host:`    | user@host:/ |
-| `user@host\\`       | `user@host:/` if net use, but <br> `user@host:` if map drive | user@host:/ |
-| `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | user@host:/path |
-| `user@host\\\\\`    | `user@host:///` | user@host:/ |
-| `user@host\..\`     | `user@host:../` | user@host:/../ |
+|Row | sshfs-win.exe args  | today translates to | should translate to |
+|---:| -------------       |---------------| ----------|
+|1   | `user@host`         | `user@host:`    | user@host:/ |
+|2   | `user@host\`        | `user@host:`    | user@host:/ |
+|3   | `user@host\\`       | `user@host:/` if net use, but <br> `user@host:` if map drive | user@host:/ |
+|4   | `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | user@host:/path |
+|5   | `user@host\\\\\`    | `user@host:///` | user@host:/ |
+|6   | `user@host\..\`     | `user@host:../` | user@host:/../ |
