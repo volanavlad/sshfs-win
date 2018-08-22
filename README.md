@@ -232,12 +232,12 @@ In the table below, row 3 and 4 are the problem, so the user has to rely on some
 
 |Row | sshfs-win.exe args  | today translates to | should translate to |
 |---:| -------------       |---------------| ----------|
-|1   | `user@host`         | `user@host:`    | user@host:/ |
-|2   | `user@host\`        | `user@host:`    | user@host:/ |
-|3   | `user@host\\`       | `user@host:/` if net use, but <br> `user@host:` if map drive | user@host:/ |
-|4   | `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | user@host:/path |
-|5   | `user@host\\\\\`    | `user@host:///` | user@host:/ |
-|6   | `user@host\..\`     | `user@host:../` | user@host:/../ |
+|1   | `user@host`         | `user@host:`    | `user@host:/` |
+|2   | `user@host\`        | `user@host:`    | `user@host:/` |
+|3   | `user@host\\`       | `user@host:/` if net use, but <br> `user@host:` if map drive | `user@host:/` |
+|4   | `user@host\\path`   | `user@host:/path` if net use, but <br> `user@host:path` if map drive | `user@host:/path` |
+|5   | `user@host\\\\\`    | `user@host:///` | `user@host:///` |
+|6   | `user@host\..\`     | `user@host:../` | `user@host:/../` |
 
 To implement this solution, just replace line 78 in sshfs-win.c by this block and `#include <string.h>`:
 
