@@ -255,3 +255,36 @@ To implement this solution, just replace line 78 in sshfs-win.c by this block an
 ```
 
 I was planning to send a pull request, but I don't know how to send this small code without sending too many changes in my branch.
+
+
+# Build SSH in Windows
+- Install strawberry perl
+- Download OpenSSL zip source code and extract
+- Build and Install OpenSSL in Windows:
+```
+call "%VS140COMNTOOLS%\..\..\vcvarsall.bat" x64
+cd D:\programming\OpenSSL\openssl-1.0.2f
+perl Configure VC-WIN64A no-asm --prefix=C:\OpenSSL
+ms\do_win64a
+nmake -f ms\nt.mak install
+```
+
+- rename libs in c:\OpenSSL\lib
+```
+libeay32.dll -> libcrypto.dll
+ssleay32.dll -> libssl.dll
+```
+- Clone openssh for windows 
+```
+git clone https://github.com/PowerShell/openssh-portable.git
+```
+
+- Open solution openssh-portable\contrib\win32\openssh\Win32-OpenSSH.sln
+- Check configuration in these projects: config, posix_compat, openbsd_compat, libssh, ssh
+- Build in that order, after adding:
+  + c:\OpenSSL\include as aditional include directory, and
+  + c:\OpenSSL\lib as adittional library directory
+
+:: benchmark
+set "ssh_cyg=C:\Program Files\SSHFS-Win\bin\ssh.exe"
+set "ssh_vs=C:\Users\sant\Documents\openssh-portable\bin\x64\Release\ssh.exe"
